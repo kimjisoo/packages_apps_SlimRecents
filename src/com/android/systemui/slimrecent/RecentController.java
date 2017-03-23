@@ -780,6 +780,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_CARD_BG_COLOR),
                     false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SLIM_RECENTS_ICON_PACK),
+                    false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -858,6 +861,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mAppSidebarOpenSimultaneously = Settings.System.getIntForUser(resolver,
                     Settings.System.RECENT_APP_SIDEBAR_OPEN_SIMULTANEOUSLY, 1,
                     UserHandle.USER_CURRENT) == 1;
+            String currentIconPack = Settings.System.getString(resolver,
+                Settings.System.SLIM_RECENTS_ICON_PACK);
+            IconPackHelper.getInstance(mContext).updatePrefs(currentIconPack);
         }
     }
 
