@@ -914,12 +914,12 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             ContentResolver resolver = mContext.getContentResolver();
 
-            boolean isFastMode = Settings.System.getIntForUser(
+            int expandMode = Settings.System.getIntForUser(
                         resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
-                        mRecentPanelView.EXPANDED_MODE_NEVER,
-                        UserHandle.USER_CURRENT) == 1;
+                        RecentPanelView.EXPANDED_MODE_AUTO,
+                        UserHandle.USER_CURRENT);
             CacheMoreCardsLayoutManager llm =
-                    new CacheMoreCardsLayoutManager(mContext, mWindowManager, isFastMode);
+                    new CacheMoreCardsLayoutManager(mContext, mWindowManager, expandMode);
             llm.setReverseLayout(true);
             mCardRecyclerView.setLayoutManager(llm);
             mCardRecyclerView.setItemAnimator(mItemAnimator);
@@ -956,10 +956,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             if (mRecentPanelView != null) {
                 mRecentPanelView.setScaleFactor(mScaleFactor);
-                mRecentPanelView.setExpandedMode(Settings.System.getIntForUser(
-                    resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
-                    mRecentPanelView.EXPANDED_MODE_AUTO,
-                    UserHandle.USER_CURRENT));
+                mRecentPanelView.setExpandedMode(expandMode);
                 mRecentPanelView.setCardColor(Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_CARD_BG_COLOR, 0x00ffffff,
                     UserHandle.USER_CURRENT));
@@ -1262,14 +1259,14 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private class CacheMoreCardsLayoutManager extends LinearLayoutManager {
         private Context context;
         private WindowManager mWindowManager;
-        private boolean mFastMode;
+        private int mExpandMode;
 
         public CacheMoreCardsLayoutManager(Context context, WindowManager windowManager,
-                                           boolean fastMode) {
+                                           int expandMode) {
             super(context);
             this.context = context;
             this.mWindowManager = windowManager;
-            this.mFastMode = fastMode;
+            this.mExpandMode = expandMode;
         }
 
         /**
@@ -1284,16 +1281,29 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
         @Override
         protected int getExtraLayoutSpace(RecyclerView.State state) {
-            return mFastMode ? 300 : getScreenHeight();
+            int space = 300;
+            switch(mExpandMode) {
+                case RecentPanelView.EXPANDED_MODE_DISABLED:
+                    space = 300;
+                    break;
+                case RecentPanelView.EXPANDED_MODE_NEVER:
+                case RecentPanelView.EXPANDED_MODE_AUTO:
+                    space = 600;
+                    break;
+                /*case RecentPanelView.EXPANDED_MODE_ALWAYS:
+                    space = getScreenHeight();
+                    break;*/
+            }
+            return space;
         }
 
-        private int getScreenHeight() {
+        /*private int getScreenHeight() {
             Display display = mWindowManager.getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
             int screenHeight = size.y;
             return screenHeight;
-        }
+        }*/
     }
 
     protected void pinApp(int persistentTaskId) {
